@@ -4,7 +4,7 @@ version = { workspace = true }
 authors = ["Steven Fackler <sfackler@gmail.com>", "Ivan Nikulin <ifaaan@gmail.com>"]
 edition = { workspace = true }
 description = "Hyper TLS support via BoringSSL"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 repository = { workspace = true }
 documentation = "https://docs.rs/hyper-boring"
 readme = "README.md"
@@ -42,4 +42,13 @@ tower-layer = { workspace = true }
 [dev-dependencies]
 hyper = { workspace = true, features = [ "full" ] }
 tokio = { workspace = true, features = [ "full" ] }
+tower = { workspace = true, features = ["util"] }
 futures = { workspace = true }
+
+[package.metadata.release]
+pre-release-hook = [
+  "git-cliff",
+  "--workdir", "..",
+  "-o", "../RELEASE_NOTES",
+  "--tag", "{{version}}"
+]

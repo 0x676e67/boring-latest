@@ -5,6 +5,7 @@ use std::path::PathBuf;
 pub(crate) struct Config {
     pub(crate) manifest_dir: PathBuf,
     pub(crate) out_dir: PathBuf,
+    pub(crate) is_bazel: bool,
     pub(crate) host: String,
     pub(crate) target: String,
     pub(crate) target_arch: String,
@@ -18,6 +19,7 @@ pub(crate) struct Features {
     pub(crate) fips_link_precompiled: bool,
     pub(crate) pq_experimental: bool,
     pub(crate) rpk: bool,
+    pub(crate) underscore_wildcards: bool,
 }
 
 pub(crate) struct Env {
@@ -50,9 +52,15 @@ impl Config {
             features.fips || features.fips_link_precompiled,
         );
 
+        let mut is_bazel = false;
+        if let Some(src_path) = &env.source_path {
+            is_bazel = src_path.join("src").exists();
+        }
+
         let config = Self {
             manifest_dir,
             out_dir,
+            is_bazel,
             host,
             target,
             target_arch,
@@ -82,7 +90,10 @@ impl Config {
             );
         }
 
-        let features_with_patches_enabled = self.features.rpk || self.features.pq_experimental;
+        let features_with_patches_enabled = self.features.rpk
+            || self.features.pq_experimental
+            || self.features.underscore_wildcards;
+
         let patches_required = features_with_patches_enabled && !self.env.assume_patched;
         let build_from_sources_required = self.features.fips_link_precompiled || patches_required;
 
@@ -98,12 +109,14 @@ impl Features {
         let fips_link_precompiled = env::var_os("CARGO_FEATURE_FIPS_LINK_PRECOMPILED").is_some();
         let pq_experimental = env::var_os("CARGO_FEATURE_PQ_EXPERIMENTAL").is_some();
         let rpk = env::var_os("CARGO_FEATURE_RPK").is_some();
+        let underscore_wildcards = env::var_os("CARGO_FEATURE_UNDERSCORE_WILDCARDS").is_some();
 
         Self {
             fips,
             fips_link_precompiled,
             pq_experimental,
             rpk,
+            underscore_wildcards,
         }
     }
 }
